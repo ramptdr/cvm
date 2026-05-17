@@ -1,0 +1,19 @@
+let x = 10
+let y = 5
+let total = x + y * 2
+
+print total
+
+if total > 15 {
+  let total = 99
+  print total
+} else {
+  print 0
+}
+
+while y > 0 {
+  print y
+  y = y - 1
+}
+
+print total

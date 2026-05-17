@@ -1,0 +1,469 @@
+# CVM++ 🚀
+
+**A tiny programming language that goes all the way from source code to bytecode to a running stack-based virtual machine.**
+
+CVM++ is a custom scripting language written in modern C++17. It makes the compiler pipeline visible and understandable: raw source text is tokenized, parsed into an AST, compiled into bytecode, and executed by a stack-based virtual machine.
+
+```text
+script.cvm
+   |
+   v
+Lexer -> Parser -> AST -> Compiler -> Bytecode / ISA -> Stack VM -> Output
+```
+
+This project implements the Coding Club CVM++ brief: **Stack-Based Virtual Machine and Custom Compiler**.
+
+---
+
+## ⚡ Quick Demo
+
+Example CVM++ program:
+
+```c
+let x = 10
+let y = 5
+let total = x + y * 2
+
+print total
+
+if total > 15 {
+  let total = 99
+  print total
+} else {
+  print 0
+}
+
+while y > 0 {
+  print y
+  y = y - 1
+}
+
+print total
+```
+
+Run it:
+
+```powershell
+.\cvm.exe examples\full_demo.cvm
+```
+
+Output:
+
+```text
+20
+99
+5
+4
+3
+2
+1
+20
+```
+
+Want to see what happens inside the compiler?
+
+```powershell
+.\cvm.exe --ast --bytecode --no-run examples\full_demo.cvm
+```
+
+This prints both the generated AST and bytecode without executing the VM.
+
+---
+
+## 🔍 What This Project Shows
+
+Most languages hide the journey from source code to execution. CVM++ exposes that journey clearly.
+
+| Stage | What It Does | Where |
+|---|---|---|
+| Lexer | Converts raw source code into tokens | `src/lexer/` |
+| Parser | Converts tokens into an AST | `src/parser/` |
+| AST | Represents program structure | `src/parser/ast.h` |
+| Compiler | Converts AST into bytecode | `src/compiler/` |
+| ISA | Defines bytecode instructions | `src/compiler/chunk.h` |
+| VM | Executes bytecode using a stack | `src/vm/` |
+| CLI | Connects all phases | `src/main.cpp` |
+
+---
+
+## ✨ Feature Set
+
+Implemented language features:
+
+- Integer and boolean values
+- `let` variable declarations
+- Variable assignment
+- Arithmetic: `+`, `-`, `*`, `/`
+- Comparisons: `==`, `<`, `>`
+- Unary minus
+- `if/else` control flow
+- `while` loops
+- `input` reading
+- `print` output
+- Block scope
+- Variable shadowing
+- AST debug output
+- Bytecode / ISA debug output
+- Runtime error handling
+
+Example of block scope and shadowing:
+
+```c
+let x = 1
+if x == 1 {
+  let x = 2
+  print x
+}
+print x
+```
+
+Output:
+
+```text
+2
+1
+```
+
+The inner `x` exists only inside the `if` block.
+
+---
+
+## 📁 Project Structure
+
+```text
+cvm/
+  src/
+    main.cpp                    # CLI entry point: lex, parse, compile, run
+    lexer/
+      lexer.h                   # Token definitions and Lexer declaration
+      lexer.cpp                 # Source text -> tokens
+    parser/
+      ast.h                     # AST nodes and Visitor interface
+      parser.h                  # Parser declaration
+      parser.cpp                # Tokens -> AST
+    compiler/
+      chunk.h                   # Bytecode instruction set / ISA
+      chunk.cpp                 # Bytecode disassembler
+      compiler.h                # Compiler declaration
+      compiler.cpp              # AST -> bytecode
+    vm/
+      vm.h                      # VM declaration
+      vm.cpp                    # Stack-based bytecode execution loop
+
+  examples/
+    arithmetic.cvm
+    control_flow.cvm
+    input_print.cvm
+    shadowing.cvm
+    full_demo.cvm
+
+  tests/
+    parser/
+    compiler/
+    vm/
+    run_parser_tests.ps1
+    run_compiler_tests.ps1
+    run_vm_tests.ps1
+    run_all_tests.ps1
+
+  README.md
+  .gitignore
+```
+
+---
+
+## 🛠️ Build Instructions
+
+Open a terminal in the project root, the folder that contains `src`, `examples`, and `tests`.
+
+### Windows PowerShell
+
+```powershell
+cd path\to\cvm
+g++ -std=c++17 -Wall -Wextra -Werror -Isrc src/main.cpp src/lexer/lexer.cpp src/parser/parser.cpp src/compiler/compiler.cpp src/compiler/chunk.cpp src/vm/vm.cpp -o cvm.exe
+```
+
+### Linux / macOS
+
+```bash
+cd path/to/cvm
+g++ -std=c++17 -Wall -Wextra -Werror -Isrc src/main.cpp src/lexer/lexer.cpp src/parser/parser.cpp src/compiler/compiler.cpp src/compiler/chunk.cpp src/vm/vm.cpp -o cvm
+```
+
+---
+
+## 💻 Running CVM++ Programs
+
+Run a script:
+
+```powershell
+.\cvm.exe examples\full_demo.cvm
+```
+
+Run your own `.cvm` file:
+
+```powershell
+.\cvm.exe path\to\your_script.cvm
+```
+
+Run a program that takes input:
+
+```powershell
+.\cvm.exe examples\input_print.cvm
+```
+
+Linux / macOS:
+
+```bash
+./cvm examples/full_demo.cvm
+```
+
+---
+
+## 🧪 Debug Modes
+
+| Flag | Purpose |
+|---|---|
+| `--ast` | Prints the generated abstract syntax tree |
+| `--bytecode` | Prints constants, variables, and opcodes |
+| `--no-run` | Stops after compilation and skips VM execution |
+
+Examples:
+
+```powershell
+.\cvm.exe --ast examples\shadowing.cvm
+```
+
+```powershell
+.\cvm.exe --bytecode examples\shadowing.cvm
+```
+
+```powershell
+.\cvm.exe --ast --bytecode --no-run examples\shadowing.cvm
+```
+
+---
+
+## 🧠 Language Grammar
+
+```text
+program     -> statement*
+
+statement   -> letStmt
+             | assignStmt
+             | printStmt
+             | inputStmt
+             | ifStmt
+             | whileStmt
+
+letStmt     -> "let" IDENTIFIER "=" expression
+assignStmt  -> IDENTIFIER "=" expression
+printStmt   -> "print" expression
+inputStmt   -> "input" IDENTIFIER
+ifStmt      -> "if" expression block ("else" block)?
+whileStmt   -> "while" expression block
+block       -> "{" statement* "}"
+
+expression  -> comparison
+comparison  -> addSub (("==" | "<" | ">") addSub)?
+addSub      -> mulDiv (("+" | "-") mulDiv)*
+mulDiv      -> unary (("*" | "/") unary)*
+unary       -> "-" unary | primary
+primary     -> NUMBER | "true" | "false" | IDENTIFIER
+```
+
+---
+
+## ⚙️ ISA / Bytecode Instructions
+
+The bytecode instruction set is defined in:
+
+```text
+src/compiler/chunk.h
+```
+
+| Opcode | Operand | Meaning |
+|---|---|---|
+| `PUSH_INT` | constant index | Push integer constant |
+| `PUSH_BOOL` | `0` or `1` | Push boolean value |
+| `LOAD_VAR` | variable slot | Push variable value |
+| `STORE_VAR` | variable slot | Store into existing variable |
+| `DEFINE_VAR` | variable slot | Define variable from stack value |
+| `ADD` | none | Integer addition |
+| `SUB` | none | Integer subtraction |
+| `MUL` | none | Integer multiplication |
+| `DIV` | none | Integer division |
+| `EQ` | none | Equality comparison |
+| `LT` | none | Less-than comparison |
+| `GT` | none | Greater-than comparison |
+| `NEGATE` | none | Integer negation |
+| `JUMP` | instruction index | Unconditional jump |
+| `JUMP_IF_FALSE` | instruction index | Conditional jump |
+| `PRINT` | none | Print top stack value |
+| `INPUT` | variable slot | Read integer input |
+| `HALT` | none | Stop execution |
+
+---
+
+## ✅ Testing
+
+Run the complete test suite:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\run_all_tests.ps1
+```
+
+Expected final output:
+
+```text
+All parser tests passed.
+All compiler tests passed.
+All VM tests passed.
+All CVM tests passed.
+```
+
+The tests cover:
+
+- valid parser cases
+- invalid parser cases
+- bytecode generation
+- scoped variable shadowing
+- VM execution output
+- division by zero
+- invalid input
+- runtime type errors
+- unsupported syntax
+
+---
+
+## 🚨 Error Handling Examples
+
+Undeclared variable:
+
+```c
+print x
+```
+
+Result:
+
+```text
+Error: [Line 1] Parse error: use of undeclared variable 'x'
+```
+
+Division by zero:
+
+```c
+let x = 10 / 0
+print x
+```
+
+Result:
+
+```text
+Error: VM: division by zero
+```
+
+Unsupported semicolon:
+
+```c
+let x = 1;
+```
+
+Result:
+
+```text
+Error: Lex error: unknown character ';' on line 1
+```
+
+Invalid input:
+
+```c
+let x = 0
+input x
+print x
+```
+
+If the user enters non-integer input:
+
+```text
+Error: VM: INPUT failed - expected an integer
+```
+
+---
+
+## 📌 Coding Club Scope Checklist
+
+| Requirement From Brief | Status |
+|---|---|
+| Design simple grammar | Done |
+| Design ISA/opcodes | Done |
+| Build lexer | Done |
+| Build parser | Done |
+| Build AST | Done |
+| Compile AST to bytecode | Done |
+| Build stack-based VM | Done |
+| File runner demo | Done |
+| Show AST in debug mode | Done |
+| Show bytecode output | Done |
+| Print final VM output | Done |
+| Add sample scripts | Done |
+| Integers and booleans | Done |
+| Variables and assignment | Done |
+| Control flow | Done |
+| `input` and `print` | Done |
+
+---
+
+## 🧱 Known Limitations
+
+The language intentionally keeps the scope small. It does not support:
+
+- strings
+- functions
+- arrays
+- classes
+- comments
+- semicolons
+- parentheses
+- `<=`, `>=`, `!=`
+- floating point numbers
+
+These are future extensions and are outside the current CVM++ project scope.
+
+---
+
+## 🏗️ Implementation Highlights
+
+- Recursive descent parser
+- Visitor pattern for AST compilation
+- `std::unique_ptr` for AST ownership
+- `std::variant<int, bool>` for runtime values
+- Bytecode stored in a `Chunk`
+- Stack-based VM execution loop
+- Separate parser, compiler, and VM test suites
+
+---
+
+## 👥 Team
+
+Built collaboratively by:
+
+| Name | GitHub |
+|---|---|
+| Ram Patidar | `@ramptdr` |
+| Pranjal Singh | `@kodecraftr` |
+| Nikunj Jindal | `@j-nikunj` |
+
+---
+
+## 🎯 Submission Checklist
+
+- Source code included
+- Examples included
+- Parser tests included
+- Compiler tests included
+- VM tests included
+- Build command documented
+- Run commands documented
+- AST and bytecode debug commands documented
+- Known limitations documented

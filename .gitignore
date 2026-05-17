@@ -1,0 +1,5 @@
+cvm.exe
+*.exe
+*.o
+*.obj
+*.log
