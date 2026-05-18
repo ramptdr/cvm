@@ -1,0 +1,10 @@
+let value = 0
+input value
+
+if value == 0 {
+  print 0
+} else {
+  while value == 1 {
+    print 1
+  }
+}
